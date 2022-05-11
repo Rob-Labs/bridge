@@ -697,6 +697,14 @@ contract EmpireToken is Context, IERC20, Ownable {
     event Withdrawal(address account, uint256 amount);
     event LogSetBridge(address oldBridge, address newBridge);
     event LogNumTokensSellToAddToLiquidity(uint256 oldAmount, uint256 newAmount);
+    event LogExcludeFromReward(address account);
+    event LogIncludeFromReward(address account);
+    event LogExcludeFromFee(address account);
+    event LogIncludeFromFee(address account);
+    event LogUpdateMarketingWallet(address oldWallet, address newWallet);
+    event LogUpdateBurnWallet(address oldWallet, address newWallet);
+    event LogUpdateTeamWallet(address oldWallet, address newWallet);
+    event LogUpdateLiquidityWallet(address oldWallet, address newWallet);
 
     modifier lockTheSwap() {
         inSwapAndLiquify = true;
@@ -881,6 +889,7 @@ contract EmpireToken is Context, IERC20, Ownable {
         }
         _isExcluded[account] = true;
         _excluded.push(account);
+        emit LogExcludeFromReward(account);
     }
 
     function includeInReward(address account) external onlyOwner {
@@ -894,6 +903,7 @@ contract EmpireToken is Context, IERC20, Ownable {
                 break;
             }
         }
+        emit LogIncludeFromReward(account);
     }
 
     //to recieve ETH from uniswapV2Router when swaping
@@ -1259,21 +1269,26 @@ contract EmpireToken is Context, IERC20, Ownable {
 
     function excludeFromFee(address account) external onlyOwner {
         _isExcludedFromFee[account] = true;
+        emit LogExcludeFromFee(account);
     }
 
     function includeInFee(address account) external onlyOwner {
         _isExcludedFromFee[account] = false;
+        emit LogIncludeFromFee(account);
     }
 
     function setMarketingWallet(address payable newWallet) external onlyOwner nonZeroAddress(newWallet) {
+        emit LogUpdateMarketingWallet(marketingWallet, newWallet);
         marketingWallet = newWallet;
     }
 
     function setBurnWallet(address payable newWallet) external onlyOwner nonZeroAddress(newWallet) {
+        emit LogUpdateBurnWallet(burnWallet, newWallet);
         burnWallet = newWallet;
     }
 
     function setTeamWallet(address payable newWallet) external onlyOwner nonZeroAddress(newWallet) {
+        emit LogUpdateTeamWallet(teamWallet, newWallet);
         teamWallet = newWallet;
     }
 
@@ -1330,6 +1345,7 @@ contract EmpireToken is Context, IERC20, Ownable {
 
     function updateLiquidityWallet(address payable newLiquidityWallet) external onlyOwner {
         require(newLiquidityWallet != liquidityWallet, "The liquidity wallet is already this address");
+        emit LogUpdateLiquidityWallet(liquidityWallet, newLiquidityWallet);
         liquidityWallet = newLiquidityWallet;
     }
 
