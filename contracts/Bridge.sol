@@ -6,7 +6,7 @@ import "./IEmpireToken.sol";
 contract Bridge {
     address public validator;
     uint256 public fee = 50;
-    uint256 public feeDominator = 10000;
+    uint256 public constant FEE_DENOMINATOR = 10000;
     uint256 private currentNonce = 0;
     address payable public feeRecevier;
     mapping(bytes32 => bool) public processedSwap;
@@ -14,20 +14,22 @@ contract Bridge {
     mapping(string => address) public tickerToToken;
     mapping(uint256 => bool) public activeChainIds;
 
-    event SwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
+    event LogSwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
 
-    event Redeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
-    event WithdrawalFee(address indexed account, uint256 amount);
-    event FeeUpdated(uint256 oldFee, uint256 newFee);
+    event LogRedeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
+    event LogWithdrawalFee(address indexed account, uint256 amount);
 
-    constructor(address payable _feeRecevier) {
-        validator = msg.sender;
-        feeRecevier = _feeRecevier;
-    }
+    event LogFeeUpdated(uint256 oldFee, uint256 newFee);
 
     modifier nonZeroAddress(address _addr) {
         require(_addr != address(0), "Can't set to the zero address");
         _;
+    }
+
+    constructor(address payable _feeRecevier) nonZeroAddress(_feeRecevier) {
+        validator = msg.sender;
+
+        feeRecevier = _feeRecevier;
     }
 
     function swap(
@@ -39,6 +41,9 @@ contract Bridge {
     ) external payable {
         uint256 _fee = calculateFee();
         require(msg.value >= _fee, "Swap fee is not fulfilled");
+        require(getChainID() == chainFrom, "invalid chainFrom");
+        require(activeChainIds[chainTo] == true, "ChainTo is not Active");
+
         uint256 nonce = currentNonce;
         currentNonce++;
 
@@ -46,9 +51,11 @@ contract Bridge {
         bytes32 hash_ = keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce));
 
         processedSwap[hash_] = true;
+
+        emit LogSwapInitialized(msg.sender, to, amount, ticker, chainTo, chainFrom, nonce);
+
         address token = tickerToToken[ticker];
         IEmpireToken(token).burn(msg.sender, amount);
-        emit SwapInitialized(msg.sender, to, amount, ticker, chainTo, chainFrom, nonce);
     }
 
     function redeem(
@@ -68,10 +75,10 @@ contract Bridge {
         require(getChainID() == chainTo, "invalid chainTo");
         require(recoverSigner(hashMessage(hash_), signature) == validator, "invalid sig");
 
+        emit LogRedeemed(from, to, amount, ticker, chainTo, chainFrom, nonce);
+
         address token = tickerToToken[ticker];
         IEmpireToken(token).mint(to, amount);
-
-        emit Redeemed(from, to, amount, ticker, chainTo, chainFrom, nonce);
     }
 
     /**
@@ -147,27 +154,27 @@ contract Bridge {
         delete tickerToToken[ticker];
     }
 
-    function updateValidator(address _validator) external onlyValidator nonZeroAddress(_validator) {
-        validator = _validator;
+    function updateValidator(address newValidator) external onlyValidator nonZeroAddress(newValidator) {
+        validator = newValidator;
     }
 
-    function updateFeeRecevier(address payable _feeRecevier) external onlyValidator nonZeroAddress(_feeRecevier) {
-        feeRecevier = _feeRecevier;
+    function updateFeeRecevier(address payable newFeeRecevier) external onlyValidator nonZeroAddress(newFeeRecevier) {
+        feeRecevier = newFeeRecevier;
     }
 
-    function updateFee(uint256 _fee) external onlyValidator {
-        emit FeeUpdated(fee, _fee);
-        fee = _fee;
+    function updateFee(uint256 newFee) external onlyValidator {
+        emit LogFeeUpdated(fee, newFee);
+        fee = newFee;
     }
 
     function calculateFee() public view returns (uint256) {
-        return (fee * (1e18)) / feeDominator;
+        return (fee * (1e18)) / FEE_DENOMINATOR;
     }
 
     function withdrawFee() external onlyValidator {
         uint256 amount = (address(this)).balance;
         feeRecevier.transfer(amount);
-        emit WithdrawalFee(feeRecevier, amount);
+        emit LogWithdrawalFee(feeRecevier, amount);
     }
 
     receive() external payable {}
