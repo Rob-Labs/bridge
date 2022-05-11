@@ -2,10 +2,14 @@
 pragma solidity ^0.8.7;
 
 import "./IEmpireToken.sol";
+import "./IERC20.sol";
 
 contract Bridge {
     address public validator;
     uint256 public fee = 50;
+
+    uint8 public nativeDecimal = 18;
+
     uint256 public constant FEE_DENOMINATOR = 10000;
     uint256 private currentNonce = 0;
     address payable public feeRecevier;
@@ -16,12 +20,17 @@ contract Bridge {
 
     event LogSwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
     event LogRedeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
+    event LogWithdrawalNative(address indexed account, uint256 amount);
+    event LogWithdrawalERC20(address indexed tokenAddress, address indexed account, uint256 amount);
     event LogFeeUpdated(uint256 oldFee, uint256 newFee);
     event LogValidatorUpdated(address oldValidator, address newValidator);
     event LogFeeRecevierUpdated(address oldFeeRecevier, address newFeeRecevier);
     event LogSupportedChain(uint256 chainId, bool status);
     event LogAddSupportedToken(string ticker, address tokenAddress);
     event LogRemooveSupportedToken(string ticker, address tokenAddress);
+    event LogFallback(address from, uint256 amount);
+    event LogReceive(address from, uint256 amount);
+    event LogUpdateDecimal(uint8 oldDecimal, uint8 newDecimal);
 
     bool internal locked;
 
@@ -139,15 +148,6 @@ contract Bridge {
         return keccak256(abi.encodePacked(prefix, message));
     }
 
-    function isFeeRecevier() internal view returns (bool) {
-        return (feeRecevier == msg.sender);
-    }
-
-    modifier onlyFeeRecevier() {
-        require(isFeeRecevier(), "DENIED : Not FeeRecevier");
-        _;
-    }
-
     function isValidator() internal view returns (bool) {
         return (validator == msg.sender);
     }
@@ -186,6 +186,11 @@ contract Bridge {
         validator = newValidator;
     }
 
+    function updateDecimal(uint8 newDecimal) external onlyValidator {
+        emit LogUpdateDecimal(nativeDecimal, newDecimal);
+        nativeDecimal = newDecimal;
+    }
+
     function updateFeeRecevier(address payable newFeeRecevier) external onlyValidator nonZeroAddress(newFeeRecevier) {
         emit LogFeeRecevierUpdated(feeRecevier, newFeeRecevier);
         feeRecevier = newFeeRecevier;
@@ -197,8 +202,28 @@ contract Bridge {
     }
 
     function calculateFee() public view returns (uint256) {
-        return (fee * (1e18)) / FEE_DENOMINATOR;
+        return (fee * (10**nativeDecimal)) / FEE_DENOMINATOR;
     }
 
-    receive() external payable {}
+    function withdrawNative(address payable account) external onlyValidator noReentrant nonZeroAddress(account) {
+        uint256 amount = (address(this)).balance;
+        emit LogWithdrawalNative(account, amount);
+
+        account.transfer(amount);
+    }
+
+    function withdrawERC20(address erc20, address payable account) external onlyValidator noReentrant nonZeroAddress(account) {
+        uint256 amount = IERC20(erc20).balanceOf(address(this));
+
+        emit LogWithdrawalERC20(erc20, account, amount);
+        IERC20(erc20).transfer(account, amount);
+    }
+
+    receive() external payable {
+        emit LogReceive(msg.sender, msg.value);
+    }
+
+    fallback() external payable {
+        emit LogFallback(msg.sender, msg.value);
+    }
 }
