@@ -1365,7 +1365,7 @@ contract EmpireToken is Context, IERC20, Ownable {
         emit WithdrawalBNB(account, amount);
     }
 
-    function withdraw(address account, uint256 tAmount) external onlyOwner {
+    function withdraw(address account, uint256 tAmount) external onlyOwner nonZeroAddress(account) {
         uint256 currentRate = _getRate();
         uint256 rAmount = tAmount * currentRate;
         require(rAmount <= _rOwned[address(this)], "incufficient funds");

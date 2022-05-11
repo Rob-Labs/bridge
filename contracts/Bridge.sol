@@ -212,11 +212,15 @@ contract Bridge {
         account.transfer(amount);
     }
 
+    /**
+     * Validator or Owner can recover any ERC20 token sent into the contract for error
+     */
     function withdrawERC20(address erc20, address payable account) external onlyValidator noReentrant nonZeroAddress(account) {
         uint256 amount = IERC20(erc20).balanceOf(address(this));
+        bool success = IERC20(erc20).transfer(account, amount);
+        require(success, "Can't Withdraw ERC20");
 
         emit LogWithdrawalERC20(erc20, account, amount);
-        IERC20(erc20).transfer(account, amount);
     }
 
     receive() external payable {
