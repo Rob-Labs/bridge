@@ -15,15 +15,22 @@ contract Bridge {
     mapping(uint256 => bool) public activeChainIds;
 
     event LogSwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
-
     event LogRedeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
     event LogWithdrawalFee(address indexed account, uint256 amount);
-
     event LogFeeUpdated(uint256 oldFee, uint256 newFee);
+
+    bool internal locked;
 
     modifier nonZeroAddress(address _addr) {
         require(_addr != address(0), "Can't set to the zero address");
         _;
+    }
+
+    modifier noReentrant() {
+        require(!locked, "No Reentrant");
+        locked = true;
+        _;
+        locked = false;
     }
 
     constructor(address payable _feeRecevier) nonZeroAddress(_feeRecevier) {
@@ -42,12 +49,12 @@ contract Bridge {
         uint256 _fee = calculateFee();
         require(msg.value >= _fee, "Swap fee is not fulfilled");
         require(getChainID() == chainFrom, "invalid chainFrom");
-        require(activeChainIds[chainTo] == true, "ChainTo is not Active");
+        require(activeChainIds[chainTo], "ChainTo is not Active");
 
         uint256 nonce = currentNonce;
         currentNonce++;
 
-        require(processedSwap[keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce))] == false, "swap already processed");
+        require(!processedSwap[keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce))], "swap already processed");
         bytes32 hash_ = keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce));
 
         processedSwap[hash_] = true;
@@ -69,7 +76,7 @@ contract Bridge {
         bytes calldata signature
     ) external {
         bytes32 hash_ = keccak256(abi.encodePacked(from, to, amount, ticker, chainFrom, chainTo, nonce));
-        require(processedRedeem[hash_] == false, "Redeem already processed");
+        require(!processedRedeem[hash_], "Redeem already processed");
         processedRedeem[hash_] = true;
 
         require(getChainID() == chainTo, "invalid chainTo");
@@ -105,7 +112,7 @@ contract Bridge {
             bytes32
         )
     {
-        require(sig.length == 65);
+        require(sig.length == 65, "Not Valid Sig Lenght");
 
         bytes32 r;
         bytes32 s;
@@ -123,6 +130,15 @@ contract Bridge {
     function hashMessage(bytes32 message) private pure returns (bytes32) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         return keccak256(abi.encodePacked(prefix, message));
+    }
+
+    function isFeeRecevier() internal view returns (bool) {
+        return (feeRecevier == msg.sender);
+    }
+
+    modifier onlyFeeRecevier() {
+        require(isFeeRecevier(), "DENIED : Not FeeRecevier");
+        _;
     }
 
     function isValidator() internal view returns (bool) {
@@ -171,10 +187,11 @@ contract Bridge {
         return (fee * (1e18)) / FEE_DENOMINATOR;
     }
 
-    function withdrawFee() external onlyValidator {
+    function withdrawFee() external onlyFeeRecevier noReentrant {
         uint256 amount = (address(this)).balance;
-        feeRecevier.transfer(amount);
         emit LogWithdrawalFee(feeRecevier, amount);
+
+        feeRecevier.transfer(amount);
     }
 
     receive() external payable {}
