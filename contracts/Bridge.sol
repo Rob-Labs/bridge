@@ -18,6 +18,7 @@ contract Bridge {
 
     event Redeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
     event WithdrawalFee(address indexed account, uint256 amount);
+    event FeeUpdated(uint256 oldFee, uint256 newFee);
 
     constructor(address payable _feeRecevier) {
         validator = msg.sender;
@@ -150,6 +151,7 @@ contract Bridge {
     }
 
     function updateFee(uint256 _fee) external onlyValidator {
+        emit FeeUpdated(fee, _fee);
         fee = _fee;
     }
 
