@@ -18,6 +18,11 @@ contract Bridge {
     event LogRedeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
     event LogWithdrawalFee(address indexed account, uint256 amount);
     event LogFeeUpdated(uint256 oldFee, uint256 newFee);
+    event LogValidatorUpdated(address oldValidator, address newValidator);
+    event LogFeeRecevierUpdated(address oldFeeRecevier, address newFeeRecevier);
+    event LogSupportedChain(uint256 chainId, bool status);
+    event LogAddSupportedToken(string ticker, address tokenAddress);
+    event LogRemooveSupportedToken(string ticker, address tokenAddress);
 
     bool internal locked;
 
@@ -159,22 +164,28 @@ contract Bridge {
     }
 
     function updateChainById(uint256 chainId, bool isActive) external onlyValidator {
+        emit LogSupportedChain(chainId, isActive);
         activeChainIds[chainId] = isActive;
     }
 
     function includeToken(string memory ticker, address addr) external onlyValidator {
+        emit LogAddSupportedToken(ticker, addr);
         tickerToToken[ticker] = addr;
     }
 
     function excludeToken(string memory ticker) external onlyValidator {
+        address tokenAddress = tickerToToken[ticker];
+        emit LogRemooveSupportedToken(ticker, tokenAddress);
         delete tickerToToken[ticker];
     }
 
     function updateValidator(address newValidator) external onlyValidator nonZeroAddress(newValidator) {
+        emit LogValidatorUpdated(validator, newValidator);
         validator = newValidator;
     }
 
     function updateFeeRecevier(address payable newFeeRecevier) external onlyValidator nonZeroAddress(newFeeRecevier) {
+        emit LogFeeRecevierUpdated(feeRecevier, newFeeRecevier);
         feeRecevier = newFeeRecevier;
     }
 
