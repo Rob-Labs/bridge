@@ -16,7 +16,6 @@ contract Bridge {
 
     event LogSwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
     event LogRedeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
-    event LogWithdrawalFee(address indexed account, uint256 amount);
     event LogFeeUpdated(uint256 oldFee, uint256 newFee);
     event LogValidatorUpdated(address oldValidator, address newValidator);
     event LogFeeRecevierUpdated(address oldFeeRecevier, address newFeeRecevier);
@@ -63,6 +62,9 @@ contract Bridge {
         bytes32 hash_ = keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce));
 
         processedSwap[hash_] = true;
+
+        // send fee to feeRecevier address
+        feeRecevier.transfer(msg.value);
 
         emit LogSwapInitialized(msg.sender, to, amount, ticker, chainTo, chainFrom, nonce);
 
@@ -196,13 +198,6 @@ contract Bridge {
 
     function calculateFee() public view returns (uint256) {
         return (fee * (1e18)) / FEE_DENOMINATOR;
-    }
-
-    function withdrawFee() external onlyFeeRecevier noReentrant {
-        uint256 amount = (address(this)).balance;
-        emit LogWithdrawalFee(feeRecevier, amount);
-
-        feeRecevier.transfer(amount);
     }
 
     receive() external payable {}
