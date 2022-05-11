@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./IBigCoin.sol";
+import "./IEmpireToken.sol";
 
 contract Bridge {
     address public validator;
