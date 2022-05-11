@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.7;
 
 import "./IEmpireToken.sol";
 
@@ -14,25 +14,9 @@ contract Bridge {
     mapping(string => address) public tickerToToken;
     mapping(uint256 => bool) public activeChainIds;
 
-    event SwapInitialized(
-        address indexed from,
-        address indexed to,
-        uint256 amount,
-        string ticker,
-        uint256 chainTo,
-        uint256 chainFrom,
-        uint256 nonce
-    );
+    event SwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
 
-    event Redeemed(
-        address indexed from,
-        address indexed to,
-        uint256 amount,
-        string ticker,
-        uint256 chainTo,
-        uint256 chainFrom,
-        uint256 nonce
-    );
+    event Redeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
     event WithdrawalFee(address indexed account, uint256 amount);
 
     constructor(address payable _feeRecevier) {
@@ -52,46 +36,13 @@ contract Bridge {
         uint256 nonce = currentNonce;
         currentNonce++;
 
-        require(
-            processedSwap[
-                keccak256(
-                    abi.encodePacked(
-                        msg.sender,
-                        to,
-                        amount,
-                        chainFrom,
-                        chainTo,
-                        ticker,
-                        nonce
-                    )
-                )
-            ] == false,
-            "swap already processed"
-        );
-        bytes32 hash_ = keccak256(
-            abi.encodePacked(
-                msg.sender,
-                to,
-                amount,
-                chainFrom,
-                chainTo,
-                ticker,
-                nonce
-            )
-        );
+        require(processedSwap[keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce))] == false, "swap already processed");
+        bytes32 hash_ = keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce));
 
         processedSwap[hash_] = true;
         address token = tickerToToken[ticker];
         IEmpireToken(token).burn(msg.sender, amount);
-        emit SwapInitialized(
-            msg.sender,
-            to,
-            amount,
-            ticker,
-            chainTo,
-            chainFrom,
-            nonce
-        );
+        emit SwapInitialized(msg.sender, to, amount, ticker, chainTo, chainFrom, nonce);
     }
 
     function redeem(
@@ -104,25 +55,12 @@ contract Bridge {
         uint256 nonce,
         bytes calldata signature
     ) external {
-        bytes32 hash_ = keccak256(
-            abi.encodePacked(
-                from,
-                to,
-                amount,
-                ticker,
-                chainFrom,
-                chainTo,
-                nonce
-            )
-        );
+        bytes32 hash_ = keccak256(abi.encodePacked(from, to, amount, ticker, chainFrom, chainTo, nonce));
         require(processedRedeem[hash_] == false, "Redeem already processed");
         processedRedeem[hash_] = true;
 
         require(getChainID() == chainTo, "invalid chainTo");
-        require(
-            recoverSigner(hashMessage(hash_), signature) == validator,
-            "invalid sig"
-        );
+        require(recoverSigner(hashMessage(hash_), signature) == validator, "invalid sig");
 
         address token = tickerToToken[ticker];
         IEmpireToken(token).mint(to, amount);
@@ -135,11 +73,7 @@ contract Bridge {
      * @param message bytes32 message, the hash is the signed message. What is recovered is the signer address.
      * @param sig bytes signature, the signature is generated using web3.eth.sign()
      */
-    function recoverSigner(bytes32 message, bytes memory sig)
-        internal
-        pure
-        returns (address)
-    {
+    function recoverSigner(bytes32 message, bytes memory sig) internal pure returns (address) {
         uint8 v;
         bytes32 r;
         bytes32 s;
@@ -195,17 +129,11 @@ contract Bridge {
         return id;
     }
 
-    function updateChainById(uint256 chainId, bool isActive)
-        external
-        onlyValidator
-    {
+    function updateChainById(uint256 chainId, bool isActive) external onlyValidator {
         activeChainIds[chainId] = isActive;
     }
 
-    function includeToken(string memory ticker, address addr)
-        external
-        onlyValidator
-    {
+    function includeToken(string memory ticker, address addr) external onlyValidator {
         tickerToToken[ticker] = addr;
     }
 
@@ -217,10 +145,7 @@ contract Bridge {
         validator = _validator;
     }
 
-    function updateFeeRecevier(address payable _feeRecevier)
-        external
-        onlyValidator
-    {
+    function updateFeeRecevier(address payable _feeRecevier) external onlyValidator {
         feeRecevier = _feeRecevier;
     }
 
