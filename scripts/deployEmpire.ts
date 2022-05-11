@@ -13,13 +13,16 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
+  const _marketingWallet = "0x9BDF45659d8C0BEa1c59b6C66fa27a4E13c6C619";
+  const _teamWallet = "0x3A4019F2131322567ca3Ff955C1fA2407C893Dd9";
+
   // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const EmpireToken = await ethers.getContractFactory("EmpireToken");
+  const empire = await EmpireToken.deploy(_marketingWallet, _teamWallet);
 
-  await greeter.deployed();
+  await empire.deployed();
 
-  console.log("Greeter deployed to:", greeter.address);
+  console.log("EmpireToken deployed to:", empire.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
