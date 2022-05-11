@@ -695,11 +695,18 @@ contract EmpireToken is Context, IERC20, Ownable {
     event SwapETHForTokens(uint256 amountIn, address[] path);
     event WithdrawalBNB(address account, uint256 amount);
     event Withdrawal(address account, uint256 amount);
+    event LogSetBridge(address oldBridge, address newBridge);
+    event LogNumTokensSellToAddToLiquidity(uint256 oldAmount, uint256 newAmount);
 
     modifier lockTheSwap() {
         inSwapAndLiquify = true;
         _;
         inSwapAndLiquify = false;
+    }
+
+    modifier nonZeroAddress(address _addr) {
+        require(_addr != address(0), "Can't set to the zero address");
+        _;
     }
 
     constructor(address payable _marketingWallet, address payable _teamWallet) {
@@ -751,13 +758,13 @@ contract EmpireToken is Context, IERC20, Ownable {
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
 
-    function setAutomatedMarketMakerPair(address pair) public onlyOwner {
+    function setAutomatedMarketMakerPair(address pair) external onlyOwner {
         automatedMarketMakerPairs[pair] = true;
 
         emit SetAutomatedMarketMakerPair(pair);
     }
 
-    function removeAutomatedMarketMakerPair(address pair) public onlyOwner {
+    function removeAutomatedMarketMakerPair(address pair) external onlyOwner {
         automatedMarketMakerPairs[pair] = false;
 
         emit RemoveAutomatedMarketMakerPair(pair);
@@ -867,7 +874,7 @@ contract EmpireToken is Context, IERC20, Ownable {
         return rAmount / currentRate;
     }
 
-    function excludeFromReward(address account) public onlyOwner {
+    function excludeFromReward(address account) external onlyOwner {
         require(!_isExcluded[account], "Account is already excluded");
         if (_rOwned[account] > 0) {
             _tOwned[account] = tokenFromReflection(_rOwned[account]);
@@ -1258,15 +1265,15 @@ contract EmpireToken is Context, IERC20, Ownable {
         _isExcludedFromFee[account] = false;
     }
 
-    function setMarketingWallet(address payable newWallet) external onlyOwner {
+    function setMarketingWallet(address payable newWallet) external onlyOwner nonZeroAddress(newWallet) {
         marketingWallet = newWallet;
     }
 
-    function setBurnWallet(address payable newWallet) external onlyOwner {
+    function setBurnWallet(address payable newWallet) external onlyOwner nonZeroAddress(newWallet) {
         burnWallet = newWallet;
     }
 
-    function setTeamWallet(address payable newWallet) external onlyOwner {
+    function setTeamWallet(address payable newWallet) external onlyOwner nonZeroAddress(newWallet) {
         teamWallet = newWallet;
     }
 
@@ -1310,6 +1317,7 @@ contract EmpireToken is Context, IERC20, Ownable {
     }
 
     function setSwapTokens(uint256 amount) external onlyOwner {
+        emit LogNumTokensSellToAddToLiquidity(numTokensSellToAddToLiquidity, amount);
         numTokensSellToAddToLiquidity = amount;
     }
 
@@ -1329,13 +1337,13 @@ contract EmpireToken is Context, IERC20, Ownable {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * And sets the liquidity wallet. Can only be called by the current owner.
      */
-    function _transferOwnership(address payable newOwner) public virtual onlyOwner {
+    function _transferOwnership(address payable newOwner) external virtual onlyOwner {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
         liquidityWallet = address(newOwner);
         transferOwnership(newOwner);
     }
 
-    function withdrawBNB(address payable account, uint256 amount) external onlyOwner {
+    function withdrawBNB(address payable account, uint256 amount) external onlyOwner nonZeroAddress(account) {
         require(amount <= (address(this)).balance, "incufficient funds");
         account.transfer(amount);
         emit WithdrawalBNB(account, amount);
@@ -1356,7 +1364,8 @@ contract EmpireToken is Context, IERC20, Ownable {
         _;
     }
 
-    function setBridge(address _bridge) external onlyOwner {
+    function setBridge(address _bridge) external onlyOwner nonZeroAddress(_bridge) {
+        emit LogSetBridge(bridge, _bridge);
         bridge = _bridge;
     }
 
