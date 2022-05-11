@@ -25,6 +25,11 @@ contract Bridge {
         feeRecevier = _feeRecevier;
     }
 
+    modifier nonZeroAddress(address _addr) {
+        require(_addr != address(0), "Can't set to the zero address");
+        _;
+    }
+
     function swap(
         address to,
         uint256 amount,
@@ -142,11 +147,11 @@ contract Bridge {
         delete tickerToToken[ticker];
     }
 
-    function updateValidator(address _validator) external onlyValidator {
+    function updateValidator(address _validator) external onlyValidator nonZeroAddress(_validator) {
         validator = _validator;
     }
 
-    function updateFeeRecevier(address payable _feeRecevier) external onlyValidator {
+    function updateFeeRecevier(address payable _feeRecevier) external onlyValidator nonZeroAddress(_feeRecevier) {
         feeRecevier = _feeRecevier;
     }
 
