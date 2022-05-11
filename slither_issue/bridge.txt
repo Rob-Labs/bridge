@@ -1,0 +1,57 @@
+[92m
+Bridge.updateFee(uint256) (contracts/Bridge.sol#152-154) should emit an event for: 
+	- fee = _fee (contracts/Bridge.sol#153) 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-events-arithmetic[0m
+[92m
+Bridge.constructor(address)._feeRecevier (contracts/Bridge.sol#22) lacks a zero-check on :
+		- feeRecevier = _feeRecevier (contracts/Bridge.sol#24)
+Bridge.updateValidator(address)._validator (contracts/Bridge.sol#144) lacks a zero-check on :
+		- validator = _validator (contracts/Bridge.sol#145)
+Bridge.updateFeeRecevier(address)._feeRecevier (contracts/Bridge.sol#148) lacks a zero-check on :
+		- feeRecevier = _feeRecevier (contracts/Bridge.sol#149)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation[0m
+[92m
+Reentrancy in Bridge.redeem(address,address,uint256,string,uint256,uint256,uint256,bytes) (contracts/Bridge.sol#48-69):
+	External calls:
+	- IEmpireToken(token).mint(to,amount) (contracts/Bridge.sol#66)
+	Event emitted after the call(s):
+	- Redeemed(from,to,amount,ticker,chainTo,chainFrom,nonce) (contracts/Bridge.sol#68)
+Reentrancy in Bridge.swap(address,uint256,string,uint256,uint256) (contracts/Bridge.sol#27-46):
+	External calls:
+	- IEmpireToken(token).burn(msg.sender,amount) (contracts/Bridge.sol#44)
+	Event emitted after the call(s):
+	- SwapInitialized(msg.sender,to,amount,ticker,chainTo,chainFrom,nonce) (contracts/Bridge.sol#45)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3[0m
+[92m
+Bridge.splitSignature(bytes) (contracts/Bridge.sol#86-108) uses assembly
+	- INLINE ASM (contracts/Bridge.sol#101-105)
+Bridge.getChainID() (contracts/Bridge.sol#124-130) uses assembly
+	- INLINE ASM (contracts/Bridge.sol#126-128)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage[0m
+[92m
+Bridge.swap(address,uint256,string,uint256,uint256) (contracts/Bridge.sol#27-46) compares to a boolean constant:
+	-require(bool,string)(processedSwap[keccak256(bytes)(abi.encodePacked(msg.sender,to,amount,chainFrom,chainTo,ticker,nonce))] == false,swap already processed) (contracts/Bridge.sol#39)
+Bridge.redeem(address,address,uint256,string,uint256,uint256,uint256,bytes) (contracts/Bridge.sol#48-69) compares to a boolean constant:
+	-require(bool,string)(processedRedeem[hash_] == false,Redeem already processed) (contracts/Bridge.sol#59)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#boolean-equality[0m
+[92m
+Pragma version^0.8.9 (contracts/Bridge.sol#2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
+Pragma version^0.8.9 (contracts/IEmpireToken.sol#2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
+solc-0.8.9 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity[0m
+[92m
+Parameter Bridge.updateValidator(address)._validator (contracts/Bridge.sol#144) is not in mixedCase
+Parameter Bridge.updateFeeRecevier(address)._feeRecevier (contracts/Bridge.sol#148) is not in mixedCase
+Parameter Bridge.updateFee(uint256)._fee (contracts/Bridge.sol#152) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions[0m
+[92m
+Reentrancy in Bridge.withdrawFee() (contracts/Bridge.sol#160-164):
+	External calls:
+	- feeRecevier.transfer(amount) (contracts/Bridge.sol#162)
+	Event emitted after the call(s):
+	- WithdrawalFee(feeRecevier,amount) (contracts/Bridge.sol#163)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-4[0m
+[92m
+Bridge.feeDominator (contracts/Bridge.sol#9) should be constant
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-constant[0m
+bsc:0xE53524207B1e5d64469e2205fbfc50fec07fBe03 analyzed (2 contracts with 77 detectors), 18 result(s) found
