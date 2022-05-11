@@ -728,12 +728,13 @@ contract EmpireToken is Context, IERC20, Ownable {
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(
             // Router
             // Ethereum mainnet
-            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
+            // 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
             // Ropsten
+            // 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
             // Bsc Mainnet
             // 0x10ED43C718714eb63d5aA57B78B54704E256024E
             // Bsc Testnet
-            // 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
             // Polygon Mainnet
             // Mumbai Polygon Testnet
             // 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff

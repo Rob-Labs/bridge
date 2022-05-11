@@ -1,0 +1,19 @@
+Include Token on chain ROPSTEN TESTNET Ticker : EMPIRE Address : 0xF33f0e354592eDb31bE24e664a6De116Cd56740f
+Include Token success on https://ropsten.etherscan.io/tx/0x8aed825d275c7d2818faa8f773e5e874f5bf8937dfd7cf1b8be949f37c3311aa
+
+Include Token on chain BSC TESTNET Ticker : EMPIRE Address : 0x8E3295632ED008860146fDd007e4EB9Ec9bA2778
+Include Token success on https://testnet.bscscan.com/tx/0xba78d9fafd3c88a1fd2f9f2132b73cf0de25e868c17254cd9448268d43b85db8
+
+Update swap destination chain BSC TESTNET to chain : ROPSTEN TESTNET : True
+Update success on https://testnet.bscscan.com/tx/0xd519746236d31107b3921a3d0d2516a2979b31e1976c1ac3d2eecb1d342f8f49
+
+Update swap destination chain ROPSTEN TESTNET to chain : BSC TESTNET : True
+Update success on https://ropsten.etherscan.io/tx/0xe791753cfe66f32c770cc0eeed2a34427a27cf1fb65313833e32810294bb93df
+
+Update swap fee chain ROPSTEN TESTNET  : 20
+
+Update swap fee chain BSC TESTNET  : 20
+Update success on https://testnet.bscscan.com/tx/0x17f215f7efa3e9bf37821d49e213b1c6b3279e7363d166f6ac9c71ce72ff5bc4
+Update swap fee chain ROPSTEN TESTNET  : 20
+0x057179829f77b9770e9d2b58b73a2706ec23d2433eab9517ff4371fee472c967
+Update success on https://ropsten.etherscan.io/tx/0x057179829f77b9770e9d2b58b73a2706ec23d2433eab9517ff4371fee472c967

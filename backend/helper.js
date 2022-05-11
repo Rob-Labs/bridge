@@ -3,10 +3,12 @@ const ropsten = require("./networks/ropsten");
 const bsc = require("./networks/bsc");
 const bsc_testnet = require("./networks/bsc_testnet");
 const BigNumber = require("bignumber.js");
-const tokenABI = require("./abis/Token.json");
+const tokenABI = require("./abis/Empire.json");
 const fs = require("fs");
 const util = require("util");
-const log_file = fs.createWriteStream(__dirname + "/debug.log", { flags: "a" });
+const log_file = fs.createWriteStream(__dirname + "/helper.log", {
+  flags: "a",
+});
 const log_stdout = process.stdout;
 
 console.log = function (d) {
@@ -19,13 +21,6 @@ const network_id = {
   3: ropsten,
   56: bsc,
   97: bsc_testnet,
-};
-
-const token_address = {
-  1: "0x5C668e913D5b9395a43C075bf87534460CEE15f9",
-  3: "",
-  56: "0x5C668e913D5b9395a43C075bf87534460CEE15f9",
-  97: "0x02f69719A27144A8ce81D3E68e4e3625c9D53CcE",
 };
 
 // include token
@@ -89,10 +84,30 @@ const updateChainById = async (chain, chainId, isActive) => {
     });
 };
 
-// excludeToken("97", "BTT");
-// excludeToken("43113", "BTT");
-// includeToken("1", "BTT", "0x5C668e913D5b9395a43C075bf87534460CEE15f9");
-// includeToken("56", "BTT", "0x5C668e913D5b9395a43C075bf87534460CEE15f9");
-// updateChainById("56", "1", "True");
-// updateChainById("1", "56", "True");
-// eth.web3.eth.getGasPrice().then(console.log);
+// update chain token
+const updateFee = async (chain, newFee) => {
+  const { address: validator } = network_id[chain].web3.eth.accounts.wallet[0];
+  console.log(
+    `Update swap fee chain ${network_id[chain].network_name}  : ${newFee}`
+  );
+  const gasPrice = await network_id[chain].web3.eth.getGasPrice();
+  const gasEstimate = await network_id[chain].bridge.methods
+    .updateFee(newFee)
+    .estimateGas({ from: validator });
+
+  network_id[chain].bridge.methods
+    .updateFee(newFee)
+    .send({ from: validator, gasPrice: gasPrice, gas: gasEstimate })
+    .on("receipt", function (receipt) {
+      console.log(
+        `Update success on ${network_id[chain].explorer}${receipt.transactionHash}`
+      );
+    });
+};
+
+// includeToken("3", "EMPIRE", "0xF33f0e354592eDb31bE24e664a6De116Cd56740f");
+// includeToken("97", "EMPIRE", "0x8E3295632ED008860146fDd007e4EB9Ec9bA2778");
+// updateChainById("97", "3", "True");
+// updateChainById("3", "97", "True");
+// updateFee("3", "20");
+// updateFee("97", "20");

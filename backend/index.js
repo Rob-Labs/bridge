@@ -12,7 +12,7 @@ const log_file = fs.createWriteStream(__dirname + "/backend.log", {
 const log_stdout = process.stdout;
 
 const Queue = require("bull");
-const RedeemTxQueue = new Queue("RedeemTxBackend", "redis://192.168.1.6:6379");
+const RedeemTxQueue = new Queue("RedeemTxBackend", "redis:/127.0.0.1:6379");
 
 console.log = function (d) {
   log_file.write(util.format(d) + "\n");
@@ -88,9 +88,9 @@ RedeemTxQueue.process(performRedeem);
 
 console.log(`Bridge Backend Started ::`);
 console.log(`Listening on swap event ......`);
-bsc.bridge.events.SwapInitialized().on("data", async (data) => {
+bsc_testnet.bridge.events.LogSwapInitialized().on("data", async (data) => {
   RedeemTxQueue.add({ data });
 });
-eth.bridge.events.SwapInitialized().on("data", async (data) => {
+ropsten.bridge.events.LogSwapInitialized().on("data", async (data) => {
   RedeemTxQueue.add({ data });
 });
