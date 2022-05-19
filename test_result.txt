@@ -1,0 +1,97 @@
+Empire Test Overview :
+
+Deployment
+  ✔ Has a correct name 'EmpireToken'
+  ✔ Has a correct symbol 'EMPIRE'
+  ✔ Has 9 decimals
+  ✔ Has 1 billion tokens with 9 decimal units (10^18)
+  ✔ Correct Marketing address wallet
+  ✔ Correct Team address wallet
+  ✔ Correct Liquidity address wallet
+  ✔ Correct Dead (burn) address wallet
+
+8 passing (43s)
+
+
+Distribution
+  ✔ Deployer start with 100% balance
+  ✔ Users start with empty balance
+
+2 passing (12s)
+
+Transactions at Presale Time
+  ✔ Transfer fails when Presale Time although sender have enough tokens
+
+1 passing (6s)
+
+Transactions After Presale Finish
+  ✔ Transfers tokens between accounts (143ms)
+  ✔ Transfer fails when sender doesn't have enough tokens
+  ✔ Updates balances after transfers (106ms)
+
+
+3 passing (22s)
+
+Public Write Methods
+  ✔ Only deployer can use them (82ms)
+  ✔ Changes the Marketing Wallet (75ms)
+  ✔ Changes the Team Wallet (62ms)
+  ✔ Excludes from fees (93ms)
+  ✔ Toggles SwapAndLiquify (80ms)
+  ✔ Changes the Liquidity Wallet (90ms)
+
+6 passing (34s)
+
+Integrate with Pancakeswap / AMM
+	Liquidity Test
+	✔ Should be able to add liquidity (2413ms)
+	✔ Should be able to remove liquidity (2965ms)
+
+2 passing (18s)
+
+	Swap Test
+	✔ Should be able to buy Empire (631ms)
+	✔ Should be able to sell Empire (1133ms)
+
+2 passing (19s)
+
+
+Check Side Effect on burn and mint
+  1) Correct balance change after burn
+  2) Correct balance change after mint
+
+
+0 passing (13s)
+2 failing
+
+1) Empire Token
+   Check Side Effect on burn and mint
+     Correct balance change after burn:
+
+  AssertionError: Expected "200000000000000" to be equal 199999600000000
+  + expected - actual
+
+   {
+  -  "_hex": "0xb5e6091cfc00"
+  +  "_hex": "0xb5e620f48000"
+     "_isBigNumber": true
+   }
+
+  at Context.<anonymous> (test\side_effect.js:94:41)
+  at processTicksAndRejections (node:internal/process/task_queues:96:5)
+  at runNextTicks (node:internal/process/task_queues:65:3)
+  at listOnTimeout (node:internal/timers:528:9)
+  at processTimers (node:internal/timers:502:7)
+
+2) Empire Token
+   Check Side Effect on burn and mint
+     Correct balance change after mint:
+
+  AssertionError: Expected "200000000000000" to be equal 200000400000000
+  + expected - actual
+
+   {
+  -  "_hex": "0xb5e638cc0400"
+  +  "_hex": "0xb5e620f48000"
+     "_isBigNumber": true
+   }

@@ -2,9 +2,9 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 // const dotenv = require("dotenv");
 
-const uniswapV2RouterAbi = require("./abi/IUniswapV2Router02.json").abi;
-const uniswapV2PairAbi = require("./abi/IUniswapV2Pair.json").abi;
-const uniswapV2RouterAddress = "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3";
+// const uniswapV2RouterAbi = require("./abi/IUniswapV2Router02.json").abi;
+// const uniswapV2PairAbi = require("./abi/IUniswapV2Pair.json").abi;
+// const uniswapV2RouterAddress = "0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3";
 const deadAddress = "0x000000000000000000000000000000000000dEaD";
 
 const airdropValue = ethers.utils.parseUnits("200000", 9);
