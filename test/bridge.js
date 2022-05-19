@@ -63,137 +63,137 @@ describe("Bridge Test", function () {
     await bridge.deployed();
   });
 
-  // describe("Deployment", function () {
-  //   it("Should correct Fee Receiver address", async function () {
-  //     expect(await bridge.feeRecevier()).to.equal(feeReceiver.address);
-  //   });
-  // });
+  describe("Deployment", function () {
+    it("Should correct Fee Receiver address", async function () {
+      expect(await bridge.feeRecevier()).to.equal(feeReceiver.address);
+    });
+  });
 
-  // describe("Functional Test", function () {
-  //   describe("Function updateChainById", function () {
-  //     it("Should add supported chain by chainID", async function () {
-  //       // should emit log
-  //       expect(
-  //         await bridge.connect(validator).updateChainById(1, true)
-  //       ).to.emit(bridge, "LogSupportedChain");
+  describe("Functional Test", function () {
+    describe("Function updateChainById", function () {
+      it("Should add supported chain by chainID", async function () {
+        // should emit log
+        expect(
+          await bridge.connect(validator).updateChainById(1, true)
+        ).to.emit(bridge, "LogSupportedChain");
 
-  //       // final expect
-  //       expect(await bridge.activeChainIds(1)).to.equal(true);
-  //     });
+        // final expect
+        expect(await bridge.activeChainIds(1)).to.equal(true);
+      });
 
-  //     it("Should remove supported chain by chainID", async function () {
-  //       // should emit log
-  //       expect(
-  //         await bridge.connect(validator).updateChainById(1, false)
-  //       ).to.emit(bridge, "LogSupportedChain");
+      it("Should remove supported chain by chainID", async function () {
+        // should emit log
+        expect(
+          await bridge.connect(validator).updateChainById(1, false)
+        ).to.emit(bridge, "LogSupportedChain");
 
-  //       // final expect
-  //       expect(await bridge.activeChainIds(1)).to.equal(false);
-  //     });
-  //   });
+        // final expect
+        expect(await bridge.activeChainIds(1)).to.equal(false);
+      });
+    });
 
-  //   describe("Function updateDecimal", function () {
-  //     it("Should update native currency decimal and emit Log", async function () {
-  //       // should emit log
-  //       expect(await bridge.connect(validator).updateDecimal(9)).to.emit(
-  //         bridge,
-  //         "LogUpdateDecimal"
-  //       );
+    describe("Function updateDecimal", function () {
+      it("Should update native currency decimal and emit Log", async function () {
+        // should emit log
+        expect(await bridge.connect(validator).updateDecimal(9)).to.emit(
+          bridge,
+          "LogUpdateDecimal"
+        );
 
-  //       // final expect
-  //       expect(await bridge.nativeDecimal()).to.equal(9);
-  //     });
-  //   });
+        // final expect
+        expect(await bridge.nativeDecimal()).to.equal(9);
+      });
+    });
 
-  //   describe("Function updateFee", function () {
-  //     it("Should update Fee and emit Log", async function () {
-  //       // should emit log
-  //       expect(await bridge.connect(validator).updateFee(100)).to.emit(
-  //         bridge,
-  //         "LogFeeUpdated"
-  //       );
+    describe("Function updateFee", function () {
+      it("Should update Fee and emit Log", async function () {
+        // should emit log
+        expect(await bridge.connect(validator).updateFee(100)).to.emit(
+          bridge,
+          "LogFeeUpdated"
+        );
 
-  //       // final expect
-  //       expect(await bridge.fee()).to.equal(100);
-  //     });
-  //   });
+        // final expect
+        expect(await bridge.fee()).to.equal(100);
+      });
+    });
 
-  //   describe("Function updateFeeRecevier", function () {
-  //     it("Should update Fee Recevier address and emit Log", async function () {
-  //       // add supported ETH chain
-  //       await bridge
-  //         .connect(validator)
-  //         .updateFeeRecevier(newFeeReceiver.address);
+    describe("Function updateFeeRecevier", function () {
+      it("Should update Fee Recevier address and emit Log", async function () {
+        // add supported ETH chain
+        await bridge
+          .connect(validator)
+          .updateFeeRecevier(newFeeReceiver.address);
 
-  //       // should emit log
-  //       expect(
-  //         await bridge
-  //           .connect(validator)
-  //           .updateFeeRecevier(newFeeReceiver.address)
-  //       ).to.emit(bridge, "LogFeeUpdated");
+        // should emit log
+        expect(
+          await bridge
+            .connect(validator)
+            .updateFeeRecevier(newFeeReceiver.address)
+        ).to.emit(bridge, "LogFeeUpdated");
 
-  //       // final expect
-  //       expect(await bridge.feeRecevier()).to.equal(newFeeReceiver.address);
-  //     });
-  //   });
+        // final expect
+        expect(await bridge.feeRecevier()).to.equal(newFeeReceiver.address);
+      });
+    });
 
-  //   describe("Function updateValidator", function () {
-  //     it("Should update Validator address and emit Log", async function () {
-  //       // should emit log
-  //       expect(
-  //         await bridge.connect(validator).updateValidator(newValidator.address)
-  //       ).to.emit(bridge, "LogFeeUpdated");
+    describe("Function updateValidator", function () {
+      it("Should update Validator address and emit Log", async function () {
+        // should emit log
+        expect(
+          await bridge.connect(validator).updateValidator(newValidator.address)
+        ).to.emit(bridge, "LogFeeUpdated");
 
-  //       // final expect
-  //       expect(await bridge.validator()).to.equal(newValidator.address);
-  //     });
-  //   });
+        // final expect
+        expect(await bridge.validator()).to.equal(newValidator.address);
+      });
+    });
 
-  //   describe("Function receive and fallback", function () {
-  //     it("Should be able receive Native Currency and emit log", async function () {
-  //       const initialBridgeBalance = await ethers.provider.getBalance(
-  //         bridge.address
-  //       );
-  //       expect(
-  //         await client1.sendTransaction({
-  //           to: bridge.address,
-  //           value: ethers.utils.parseEther("2", "ether"),
-  //         })
-  //       ).to.emit(bridge, "LogReceive");
-  //       const BridgeBalance = await ethers.provider.getBalance(bridge.address);
-  //       // final expect
-  //       expect(BridgeBalance).to.equal(ethers.utils.parseEther("2", "ether"));
-  //     });
-  //   });
+    describe("Function receive and fallback", function () {
+      it("Should be able receive Native Currency and emit log", async function () {
+        const initialBridgeBalance = await ethers.provider.getBalance(
+          bridge.address
+        );
+        expect(
+          await client1.sendTransaction({
+            to: bridge.address,
+            value: ethers.utils.parseEther("2", "ether"),
+          })
+        ).to.emit(bridge, "LogReceive");
+        const BridgeBalance = await ethers.provider.getBalance(bridge.address);
+        // final expect
+        expect(BridgeBalance).to.equal(ethers.utils.parseEther("2", "ether"));
+      });
+    });
 
-  //   describe("Function withdrawNative", function () {
-  //     it("Should be able to withdraw Native to given address parameter Currency and emit log", async function () {
-  //       await client1.sendTransaction({
-  //         to: bridge.address,
-  //         value: ethers.utils.parseEther("2", "ether"),
-  //       });
+    describe("Function withdrawNative", function () {
+      it("Should be able to withdraw Native to given address parameter Currency and emit log", async function () {
+        await client1.sendTransaction({
+          to: bridge.address,
+          value: ethers.utils.parseEther("2", "ether"),
+        });
 
-  //       const initialBridgeBalance = await ethers.provider.getBalance(
-  //         bridge.address
-  //       );
+        const initialBridgeBalance = await ethers.provider.getBalance(
+          bridge.address
+        );
 
-  //       const initialValidatorBalance = await ethers.provider.getBalance(
-  //         validator.address
-  //       );
-  //       expect(
-  //         await bridge.connect(validator).withdrawNative(validator.address)
-  //       ).to.emit(bridge, "LogWithdrawalNative");
+        const initialValidatorBalance = await ethers.provider.getBalance(
+          validator.address
+        );
+        expect(
+          await bridge.connect(validator).withdrawNative(validator.address)
+        ).to.emit(bridge, "LogWithdrawalNative");
 
-  //       const BridgeBalance = await ethers.provider.getBalance(bridge.address);
-  //       const ValidatorBalance = await ethers.provider.getBalance(
-  //         validator.address
-  //       );
-  //       // final expect
-  //       expect(BridgeBalance).to.not.equal(initialBridgeBalance);
-  //       expect(ValidatorBalance).to.not.equal(initialValidatorBalance);
-  //     });
-  //   });
-  // });
+        const BridgeBalance = await ethers.provider.getBalance(bridge.address);
+        const ValidatorBalance = await ethers.provider.getBalance(
+          validator.address
+        );
+        // final expect
+        expect(BridgeBalance).to.not.equal(initialBridgeBalance);
+        expect(ValidatorBalance).to.not.equal(initialValidatorBalance);
+      });
+    });
+  });
 
   describe("Integration Test including SWAP and REDEEM", function () {
     beforeEach(async function () {
@@ -417,9 +417,286 @@ describe("Bridge Test", function () {
           client1EmpireBalanceBeforeSwap.sub(swapValue).toNumber()
         );
       });
-    });
 
-    // swap
-    // redeem
+      it("Should be fail Redeem when WRONG SIGNATURE although caller is validator", async function () {
+        // mock swap event
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const swapListenerdata = {
+          from: client1.address,
+          to: client1.address,
+          amount: swapValue.toNumber(),
+          ticker: "EMPIRE",
+          chainTo: chainId, // local chain
+          chainFrom: 3, // assuming from ropsten
+          nonce: 3,
+        };
+
+        const message = ethers.utils.solidityKeccak256(
+          [
+            "address",
+            "address",
+            "uint256",
+            "string",
+            "uint256",
+            "uint256",
+            "uint256",
+          ],
+          [
+            swapListenerdata.from,
+            swapListenerdata.to,
+            swapListenerdata.amount,
+            swapListenerdata.ticker,
+            swapListenerdata.chainFrom,
+            swapListenerdata.chainTo,
+            swapListenerdata.nonce,
+          ]
+        );
+
+        // try to sign with client1
+        const signature = await client1.signMessage(
+          ethers.utils.arrayify(message)
+        );
+
+        expect(
+          bridge
+            .connect(validator)
+            .redeem(
+              swapListenerdata.from,
+              swapListenerdata.to,
+              swapListenerdata.amount,
+              swapListenerdata.ticker,
+              swapListenerdata.chainFrom,
+              swapListenerdata.chainTo,
+              swapListenerdata.nonce,
+              signature
+            )
+        ).to.be.revertedWith("invalid sig");
+      });
+
+      it("Should be fail Redeem when invalid chain to", async function () {
+        // mock swap event
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const swapListenerdata = {
+          from: client1.address,
+          to: client1.address,
+          amount: swapValue.toNumber(),
+          ticker: "EMPIRE",
+          chainTo: 5555, // test wrong chain to
+          chainFrom: 3, // assuming from ropsten
+          nonce: 3,
+        };
+
+        const message = ethers.utils.solidityKeccak256(
+          [
+            "address",
+            "address",
+            "uint256",
+            "string",
+            "uint256",
+            "uint256",
+            "uint256",
+          ],
+          [
+            swapListenerdata.from,
+            swapListenerdata.to,
+            swapListenerdata.amount,
+            swapListenerdata.ticker,
+            swapListenerdata.chainFrom,
+            swapListenerdata.chainTo,
+            swapListenerdata.nonce,
+          ]
+        );
+
+        const signature = await validator.signMessage(
+          ethers.utils.arrayify(message)
+        );
+
+        expect(
+          bridge
+            .connect(validator)
+            .redeem(
+              swapListenerdata.from,
+              swapListenerdata.to,
+              swapListenerdata.amount,
+              swapListenerdata.ticker,
+              swapListenerdata.chainFrom,
+              swapListenerdata.chainTo,
+              swapListenerdata.nonce,
+              signature
+            )
+        ).to.be.revertedWith("invalid chainTo");
+      });
+
+      it("Should be fail Redeem when try to redeem twice", async function () {
+        // mock swap event
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const swapListenerdata = {
+          from: client1.address,
+          to: client1.address,
+          amount: swapValue.toNumber(),
+          ticker: "EMPIRE",
+          chainTo: chainId, // test wrong chain to
+          chainFrom: 3, // assuming from ropsten
+          nonce: 3,
+        };
+
+        const message = ethers.utils.solidityKeccak256(
+          [
+            "address",
+            "address",
+            "uint256",
+            "string",
+            "uint256",
+            "uint256",
+            "uint256",
+          ],
+          [
+            swapListenerdata.from,
+            swapListenerdata.to,
+            swapListenerdata.amount,
+            swapListenerdata.ticker,
+            swapListenerdata.chainFrom,
+            swapListenerdata.chainTo,
+            swapListenerdata.nonce,
+          ]
+        );
+
+        const signature = await validator.signMessage(
+          ethers.utils.arrayify(message)
+        );
+
+        const client1EmpireBalanceBeforeRedeem = await empireToken.balanceOf(
+          client1.address
+        );
+
+        // redeem 1 success
+        expect(
+          await bridge
+            .connect(validator)
+            .redeem(
+              swapListenerdata.from,
+              swapListenerdata.to,
+              swapListenerdata.amount,
+              swapListenerdata.ticker,
+              swapListenerdata.chainFrom,
+              swapListenerdata.chainTo,
+              swapListenerdata.nonce,
+              signature
+            )
+        ).to.emit(bridge, "LogRedeemed");
+
+        const client1EmpireBalanceAfterRedeem1 = await empireToken.balanceOf(
+          client1.address
+        );
+
+        // it increase balance after redeem
+        expect(
+          client1EmpireBalanceAfterRedeem1.toNumber()
+        ).to.greaterThanOrEqual(
+          client1EmpireBalanceBeforeRedeem.add(swapValue).toNumber()
+        );
+
+        expect(
+          bridge
+            .connect(validator)
+            .redeem(
+              swapListenerdata.from,
+              swapListenerdata.to,
+              swapListenerdata.amount,
+              swapListenerdata.ticker,
+              swapListenerdata.chainFrom,
+              swapListenerdata.chainTo,
+              swapListenerdata.nonce,
+              signature
+            )
+        ).to.be.revertedWith("Redeem already processed");
+
+        const client1EmpireBalanceAfterRedeem2 = await empireToken.balanceOf(
+          client1.address
+        );
+
+        //balance still same
+        expect(client1EmpireBalanceAfterRedeem1).to.equal(
+          client1EmpireBalanceAfterRedeem2
+        );
+      });
+
+      it("Should be success Redeem", async function () {
+        // mock swap event
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const swapListenerdata = {
+          from: client1.address,
+          to: client1.address,
+          amount: swapValue.toNumber(),
+          ticker: "EMPIRE",
+          chainTo: chainId, // test wrong chain to
+          chainFrom: 3, // assuming from ropsten
+          nonce: 3,
+        };
+
+        const message = ethers.utils.solidityKeccak256(
+          [
+            "address",
+            "address",
+            "uint256",
+            "string",
+            "uint256",
+            "uint256",
+            "uint256",
+          ],
+          [
+            swapListenerdata.from,
+            swapListenerdata.to,
+            swapListenerdata.amount,
+            swapListenerdata.ticker,
+            swapListenerdata.chainFrom,
+            swapListenerdata.chainTo,
+            swapListenerdata.nonce,
+          ]
+        );
+
+        const signature = await validator.signMessage(
+          ethers.utils.arrayify(message)
+        );
+
+        const client1EmpireBalanceBeforeRedeem = await empireToken.balanceOf(
+          client1.address
+        );
+
+        expect(
+          await bridge
+            .connect(validator)
+            .redeem(
+              swapListenerdata.from,
+              swapListenerdata.to,
+              swapListenerdata.amount,
+              swapListenerdata.ticker,
+              swapListenerdata.chainFrom,
+              swapListenerdata.chainTo,
+              swapListenerdata.nonce,
+              signature
+            )
+        ).to.emit(bridge, "LogRedeemed");
+
+        const client1EmpireBalanceAfterRedeem1 = await empireToken.balanceOf(
+          client1.address
+        );
+
+        // it increase balance after redeem
+        expect(
+          client1EmpireBalanceAfterRedeem1.toNumber()
+        ).to.greaterThanOrEqual(
+          client1EmpireBalanceBeforeRedeem.add(swapValue).toNumber()
+        );
+      });
+    });
   });
 });
