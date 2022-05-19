@@ -63,139 +63,139 @@ describe("Bridge Test", function () {
     await bridge.deployed();
   });
 
-  describe("Deployment", function () {
-    it("Should correct Fee Receiver address", async function () {
-      expect(await bridge.feeRecevier()).to.equal(feeReceiver.address);
-    });
-  });
+  // describe("Deployment", function () {
+  //   it("Should correct Fee Receiver address", async function () {
+  //     expect(await bridge.feeRecevier()).to.equal(feeReceiver.address);
+  //   });
+  // });
 
-  describe("Functional Test", function () {
-    describe("Function updateChainById", function () {
-      it("Should add supported chain by chainID", async function () {
-        // should emit log
-        expect(
-          await bridge.connect(validator).updateChainById(1, true)
-        ).to.emit(bridge, "LogSupportedChain");
+  // describe("Functional Test", function () {
+  //   describe("Function updateChainById", function () {
+  //     it("Should add supported chain by chainID", async function () {
+  //       // should emit log
+  //       expect(
+  //         await bridge.connect(validator).updateChainById(1, true)
+  //       ).to.emit(bridge, "LogSupportedChain");
 
-        // final expect
-        expect(await bridge.activeChainIds(1)).to.equal(true);
-      });
+  //       // final expect
+  //       expect(await bridge.activeChainIds(1)).to.equal(true);
+  //     });
 
-      it("Should remove supported chain by chainID", async function () {
-        // should emit log
-        expect(
-          await bridge.connect(validator).updateChainById(1, false)
-        ).to.emit(bridge, "LogSupportedChain");
+  //     it("Should remove supported chain by chainID", async function () {
+  //       // should emit log
+  //       expect(
+  //         await bridge.connect(validator).updateChainById(1, false)
+  //       ).to.emit(bridge, "LogSupportedChain");
 
-        // final expect
-        expect(await bridge.activeChainIds(1)).to.equal(false);
-      });
-    });
+  //       // final expect
+  //       expect(await bridge.activeChainIds(1)).to.equal(false);
+  //     });
+  //   });
 
-    describe("Function updateDecimal", function () {
-      it("Should update native currency decimal and emit Log", async function () {
-        // should emit log
-        expect(await bridge.connect(validator).updateDecimal(9)).to.emit(
-          bridge,
-          "LogUpdateDecimal"
-        );
+  //   describe("Function updateDecimal", function () {
+  //     it("Should update native currency decimal and emit Log", async function () {
+  //       // should emit log
+  //       expect(await bridge.connect(validator).updateDecimal(9)).to.emit(
+  //         bridge,
+  //         "LogUpdateDecimal"
+  //       );
 
-        // final expect
-        expect(await bridge.nativeDecimal()).to.equal(9);
-      });
-    });
+  //       // final expect
+  //       expect(await bridge.nativeDecimal()).to.equal(9);
+  //     });
+  //   });
 
-    describe("Function updateFee", function () {
-      it("Should update Fee and emit Log", async function () {
-        // should emit log
-        expect(await bridge.connect(validator).updateFee(100)).to.emit(
-          bridge,
-          "LogFeeUpdated"
-        );
+  //   describe("Function updateFee", function () {
+  //     it("Should update Fee and emit Log", async function () {
+  //       // should emit log
+  //       expect(await bridge.connect(validator).updateFee(100)).to.emit(
+  //         bridge,
+  //         "LogFeeUpdated"
+  //       );
 
-        // final expect
-        expect(await bridge.fee()).to.equal(100);
-      });
-    });
+  //       // final expect
+  //       expect(await bridge.fee()).to.equal(100);
+  //     });
+  //   });
 
-    describe("Function updateFeeRecevier", function () {
-      it("Should update Fee Recevier address and emit Log", async function () {
-        // add supported ETH chain
-        await bridge
-          .connect(validator)
-          .updateFeeRecevier(newFeeReceiver.address);
+  //   describe("Function updateFeeRecevier", function () {
+  //     it("Should update Fee Recevier address and emit Log", async function () {
+  //       // add supported ETH chain
+  //       await bridge
+  //         .connect(validator)
+  //         .updateFeeRecevier(newFeeReceiver.address);
 
-        // should emit log
-        expect(
-          await bridge
-            .connect(validator)
-            .updateFeeRecevier(newFeeReceiver.address)
-        ).to.emit(bridge, "LogFeeUpdated");
+  //       // should emit log
+  //       expect(
+  //         await bridge
+  //           .connect(validator)
+  //           .updateFeeRecevier(newFeeReceiver.address)
+  //       ).to.emit(bridge, "LogFeeUpdated");
 
-        // final expect
-        expect(await bridge.feeRecevier()).to.equal(newFeeReceiver.address);
-      });
-    });
+  //       // final expect
+  //       expect(await bridge.feeRecevier()).to.equal(newFeeReceiver.address);
+  //     });
+  //   });
 
-    describe("Function updateValidator", function () {
-      it("Should update Validator address and emit Log", async function () {
-        // should emit log
-        expect(
-          await bridge.connect(validator).updateValidator(newValidator.address)
-        ).to.emit(bridge, "LogFeeUpdated");
+  //   describe("Function updateValidator", function () {
+  //     it("Should update Validator address and emit Log", async function () {
+  //       // should emit log
+  //       expect(
+  //         await bridge.connect(validator).updateValidator(newValidator.address)
+  //       ).to.emit(bridge, "LogFeeUpdated");
 
-        // final expect
-        expect(await bridge.validator()).to.equal(newValidator.address);
-      });
-    });
+  //       // final expect
+  //       expect(await bridge.validator()).to.equal(newValidator.address);
+  //     });
+  //   });
 
-    describe("Function receive and fallback", function () {
-      it("Should be able receive Native Currency and emit log", async function () {
-        const initialBridgeBalance = await ethers.provider.getBalance(
-          bridge.address
-        );
-        expect(
-          await client1.sendTransaction({
-            to: bridge.address,
-            value: ethers.utils.parseEther("2", "ether"),
-          })
-        ).to.emit(bridge, "LogReceive");
-        const BridgeBalance = await ethers.provider.getBalance(bridge.address);
-        // final expect
-        expect(BridgeBalance).to.equal(ethers.utils.parseEther("2", "ether"));
-      });
-    });
+  //   describe("Function receive and fallback", function () {
+  //     it("Should be able receive Native Currency and emit log", async function () {
+  //       const initialBridgeBalance = await ethers.provider.getBalance(
+  //         bridge.address
+  //       );
+  //       expect(
+  //         await client1.sendTransaction({
+  //           to: bridge.address,
+  //           value: ethers.utils.parseEther("2", "ether"),
+  //         })
+  //       ).to.emit(bridge, "LogReceive");
+  //       const BridgeBalance = await ethers.provider.getBalance(bridge.address);
+  //       // final expect
+  //       expect(BridgeBalance).to.equal(ethers.utils.parseEther("2", "ether"));
+  //     });
+  //   });
 
-    describe("Function withdrawNative", function () {
-      it("Should be able to withdraw Native to given address parameter Currency and emit log", async function () {
-        await client1.sendTransaction({
-          to: bridge.address,
-          value: ethers.utils.parseEther("2", "ether"),
-        });
+  //   describe("Function withdrawNative", function () {
+  //     it("Should be able to withdraw Native to given address parameter Currency and emit log", async function () {
+  //       await client1.sendTransaction({
+  //         to: bridge.address,
+  //         value: ethers.utils.parseEther("2", "ether"),
+  //       });
 
-        const initialBridgeBalance = await ethers.provider.getBalance(
-          bridge.address
-        );
+  //       const initialBridgeBalance = await ethers.provider.getBalance(
+  //         bridge.address
+  //       );
 
-        const initialValidatorBalance = await ethers.provider.getBalance(
-          validator.address
-        );
-        expect(
-          await bridge.connect(validator).withdrawNative(validator.address)
-        ).to.emit(bridge, "LogWithdrawalNative");
+  //       const initialValidatorBalance = await ethers.provider.getBalance(
+  //         validator.address
+  //       );
+  //       expect(
+  //         await bridge.connect(validator).withdrawNative(validator.address)
+  //       ).to.emit(bridge, "LogWithdrawalNative");
 
-        const BridgeBalance = await ethers.provider.getBalance(bridge.address);
-        const ValidatorBalance = await ethers.provider.getBalance(
-          validator.address
-        );
-        // final expect
-        expect(BridgeBalance).to.not.equal(initialBridgeBalance);
-        expect(ValidatorBalance).to.not.equal(initialValidatorBalance);
-      });
-    });
-  });
+  //       const BridgeBalance = await ethers.provider.getBalance(bridge.address);
+  //       const ValidatorBalance = await ethers.provider.getBalance(
+  //         validator.address
+  //       );
+  //       // final expect
+  //       expect(BridgeBalance).to.not.equal(initialBridgeBalance);
+  //       expect(ValidatorBalance).to.not.equal(initialValidatorBalance);
+  //     });
+  //   });
+  // });
 
-  describe("Integration Test inluding SWAP and REDEEM", function () {
+  describe("Integration Test including SWAP and REDEEM", function () {
     beforeEach(async function () {
       // Deploy Empire contract
       const EmpireToken = await ethers.getContractFactory("EmpireToken");
@@ -265,5 +265,161 @@ describe("Bridge Test", function () {
         );
       });
     });
+
+    describe("Function Swap and Redeem", function () {
+      beforeEach(async function () {
+        // Send Airdrop from validator to client
+        // so client be able to swap
+        const empireDecimal = await empireToken.decimals();
+        const empireSymbol = await empireToken.symbol();
+        const airdropValue = ethers.utils.parseUnits("2000", empireDecimal);
+
+        await empireToken.transfer(client1.address, airdropValue);
+        await empireToken.transfer(client2.address, airdropValue);
+        await empireToken.transfer(client3.address, airdropValue);
+
+        // include empire in bridge
+        await bridge.includeToken(empireSymbol, empireToken.address);
+
+        // add supported chain
+        await bridge.updateChainById(3, true);
+      });
+
+      it("Should be Revert or Fail when Fee below expected Fee", async function () {
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const chainTo = 97;
+
+        // try to swap with 2 wei fee
+        const fee = {
+          value: ethers.utils.parseUnits("2", "wei"),
+        };
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.not.emit(bridge, "LogSwapInitialized");
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.be.revertedWith("Swap fee is not fulfilled");
+      });
+
+      it("Should be Revert or Fail when Wrong Chain From", async function () {
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        // try to send from wrong chain from
+        const chainFrom = 123456;
+        const chainTo = 97;
+
+        const feeAmount = await bridge.calculateFee();
+        const fee = {
+          value: feeAmount,
+        };
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainFrom, fee)
+        ).to.not.emit(bridge, "LogSwapInitialized");
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainFrom, fee)
+        ).to.be.revertedWith("invalid chainFrom");
+      });
+
+      it("Should be Revert or Fail when Wrong Chain To", async function () {
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        // try to send from wrong chain from
+        const { chainId } = await ethers.provider.getNetwork();
+        const chainTo = 1;
+
+        const feeAmount = await bridge.calculateFee();
+        const fee = {
+          value: feeAmount,
+        };
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.not.emit(bridge, "LogSwapInitialized");
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.be.revertedWith("ChainTo is not Active");
+      });
+
+      it("Should be Revert or Fail when amount swap is higher than balance", async function () {
+        // try to send higher token than client have
+        const swapValue = ethers.utils.parseUnits("20000", 9);
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const chainTo = 3;
+
+        const feeAmount = await bridge.calculateFee();
+        const fee = {
+          value: feeAmount,
+        };
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.not.emit(bridge, "LogSwapInitialized");
+
+        expect(
+          bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+      });
+
+      it("Should be Success Swap", async function () {
+        const swapValue = ethers.utils.parseUnits("200", 9);
+
+        const client1EmpireBalanceBeforeSwap = await empireToken.balanceOf(
+          client1.address
+        );
+
+        const { chainId } = await ethers.provider.getNetwork();
+        const chainTo = 3;
+
+        const feeAmount = await bridge.calculateFee();
+        const fee = {
+          value: feeAmount,
+        };
+
+        expect(
+          await bridge
+            .connect(client1)
+            .swap(client1.address, swapValue, "EMPIRE", chainTo, chainId, fee)
+        ).to.emit(bridge, "LogSwapInitialized");
+
+        const client1EmpireBalanceAfterSwap = await empireToken.balanceOf(
+          client1.address
+        );
+
+        // because empire token has fee's of transfer / burn
+        // and balance calculated by totalsupply
+        // I just expect current clinet balance less than balancebefore - swap amount
+
+        expect(client1EmpireBalanceAfterSwap.toNumber()).to.be.lessThanOrEqual(
+          client1EmpireBalanceBeforeSwap.sub(swapValue).toNumber()
+        );
+      });
+    });
+
+    // swap
+    // redeem
   });
 });
