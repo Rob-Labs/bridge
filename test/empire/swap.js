@@ -35,9 +35,10 @@ describe("Empire Token", function () {
 
   let routerContract;
   let pairContract;
-  let pair0token;
-  let pair1token;
   let WBNBContract;
+
+  let buyPath;
+  let sellPath;
 
   const maxSupplyBn = ethers.BigNumber.from("1000000000000000000");
 
@@ -92,12 +93,11 @@ describe("Empire Token", function () {
       uniswapV2PairAbi,
       ethers.provider
     );
-
-    pair0token = await pairContract.token0();
-    pair1token = await pairContract.token1();
     const wbnbAddress = await routerContract.WETH();
 
     WBNBContract = new ethers.Contract(wbnbAddress, WBNBAbi, ethers.provider);
+    buyPath = [wbnbAddress, token.address];
+    sellPath = [token.address, wbnbAddress];
   });
 
   describe("Integrate with Pancakeswap / AMM", function () {
@@ -135,22 +135,12 @@ describe("Empire Token", function () {
         //try to buy 1BNB
         const buyValue = ethers.utils.parseUnits("1", 18);
 
-        const [amountIn, bnbIn] = await routerContract
-          .connect(client1)
-          .getAmountsIn(buyValue, [pair0token, pair1token]);
-
-        // set slippage to 30% because pice impact to high
-        const amountOutMin = amountIn.mul(80).div(100);
         expect(
           await routerContract
             .connect(client1)
-            .swapExactETHForTokens(
-              amountOutMin,
-              [pair1token, pair0token],
-              client1.address,
-              MaxUint256,
-              { value: buyValue }
-            )
+            .swapExactETHForTokens(0, buyPath, client1.address, MaxUint256, {
+              value: buyValue,
+            })
         )
           .to.emit(WBNBContract, "Deposit")
           .withArgs(routerContract.address, buyValue)
@@ -173,22 +163,12 @@ describe("Empire Token", function () {
         //try to buy 1BNB
         const buyValue = ethers.utils.parseUnits("1", 18);
 
-        const [amountIn, bnbIn] = await routerContract
-          .connect(client1)
-          .getAmountsIn(buyValue, [pair0token, pair1token]);
-
-        // set slippage to 20% because pice impact to high
-        const amountOutMin = amountIn.mul(80).div(100);
         expect(
           await routerContract
             .connect(client1)
-            .swapExactETHForTokens(
-              amountOutMin,
-              [pair1token, pair0token],
-              client1.address,
-              MaxUint256,
-              { value: buyValue }
-            )
+            .swapExactETHForTokens(0, buyPath, client1.address, MaxUint256, {
+              value: buyValue,
+            })
         )
           .to.emit(WBNBContract, "Deposit")
           .withArgs(routerContract.address, buyValue)
@@ -221,7 +201,7 @@ describe("Empire Token", function () {
             .swapExactTokensForETH(
               client1EmpireBalanceAfter,
               0,
-              [pair0token, pair1token],
+              sellPath,
               client1.address,
               MaxUint256
             )
