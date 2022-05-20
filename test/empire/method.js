@@ -15,7 +15,7 @@ const airdropValue = ethers.utils.parseUnits("2000", 9);
 describe("Empire Token", function () {
   let deployer;
   let marketingWallet;
-  let team;
+  let teamWallet;
   let client1;
   let client2;
   let client3;

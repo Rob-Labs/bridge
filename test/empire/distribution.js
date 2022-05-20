@@ -10,7 +10,7 @@ const deadAddress = "0x000000000000000000000000000000000000dEaD";
 describe("Empire Token", function () {
   let deployer;
   let marketingWallet;
-  let team;
+  let teamWallet;
   let client1;
   let client2;
   let client3;

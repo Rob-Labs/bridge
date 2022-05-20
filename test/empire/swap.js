@@ -15,7 +15,7 @@ const airdropValue = ethers.utils.parseUnits("2000", 9);
 describe("Empire Token", function () {
   let deployer;
   let marketingWallet;
-  let team;
+  let teamWallet;
   let client1;
   let client2;
   let client3;
@@ -139,7 +139,7 @@ describe("Empire Token", function () {
           .connect(client1)
           .getAmountsIn(buyValue, [pair0token, pair1token]);
 
-        // set slippage to 20% because pice impact to high
+        // set slippage to 30% because pice impact to high
         const amountOutMin = amountIn.mul(80).div(100);
         expect(
           await routerContract

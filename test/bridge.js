@@ -7,7 +7,7 @@ describe("Bridge Test", function () {
   let validator;
   let feeReceiver;
   let marketingWallet;
-  let teamWallet;
+  let teamWalletWallet;
   let client1;
   let client2;
   let client3;
