@@ -119,6 +119,10 @@ describe("Empire Token Reflection and Fee Test", function () {
     await token.transfer(client8.address, airdropValue);
     await token.transfer(client9.address, airdropValue);
     await token.transfer(client10.address, airdropValue);
+
+    /**
+     * set address client9 and client10 to exclude from reward
+     */
   });
 
   //   describe("Transfer between account, exclude AMM Pair address", function () {
@@ -188,25 +192,25 @@ describe("Empire Token Reflection and Fee Test", function () {
         );
     });
 
-    it("Make sure we already add Liquidity", async function () {
-      // check deployer balance
-      // it should be 499M Empire
-      expect(await token.balanceOf(deployer.address)).equal(
-        parseUnits("499000000", 9)
-      );
+    // it("Make sure we already add Liquidity", async function () {
+    //   // check deployer balance
+    //   // it should be 499M Empire
+    //   expect(await token.balanceOf(deployer.address)).equal(
+    //     parseUnits("499000000", 9)
+    //   );
 
-      // check pair address balance
-      // it should be 500M Empire
-      expect(await token.balanceOf(pairContract.address)).equal(
-        parseUnits("500000000", 9)
-      );
+    //   // check pair address balance
+    //   // it should be 500M Empire
+    //   expect(await token.balanceOf(pairContract.address)).equal(
+    //     parseUnits("500000000", 9)
+    //   );
 
-      // check pair address balance
-      // it should be 500 WBNB
-      expect(await WBNBContract.balanceOf(pairContract.address)).equal(
-        parseUnits("500", 18)
-      );
-    });
+    //   // check pair address balance
+    //   // it should be 500 WBNB
+    //   expect(await WBNBContract.balanceOf(pairContract.address)).equal(
+    //     parseUnits("500", 18)
+    //   );
+    // });
 
     it("Should be take correct fee when buy Empire", async function () {
       /**
@@ -270,36 +274,46 @@ describe("Empire Token Reflection and Fee Test", function () {
 
       /**
        * lets try to perform buy
+       *
        */
 
-      // try to buy 1BNB
-      //   const buyEmpireInBNBValue = ethers.utils.parseUnits("1", 18);
+      const buyEmpireInBNBValue = ethers.utils.parseUnits("2", 18);
 
-      //   expect(
-      //     await routerContract
-      //       .connect(client1)
-      //       .swapExactETHForTokens(0, buyPath, client1.address, MaxUint256, {
-      //         value: buyEmpireInBNBValue,
-      //       })
-      //   )
-      //     .to.emit(WBNBContract, "Deposit")
-      //     .withArgs(routerContract.address, buyEmpireInBNBValue)
-      //     .to.emit(WBNBContract, "Transfer")
-      //     .withArgs(
-      //       routerContract.address,
-      //       pairContract.address,
-      //       buyEmpireInBNBValue
-      //     )
-      //     .to.emit(token, "Transfer")
-      //     .to.emit(pairContract, "Sync")
-      //     .to.emit(pairContract, "Swap");
+      // buy token from pancake router
+      await routerContract
+        .connect(client1)
+        .swapExactETHForTokens(0, buyPath, client1.address, MaxUint256, {
+          value: buyEmpireInBNBValue,
+        });
 
-      //   let client1EmpireBalanceAfter = await token.balanceOf(client1.address);
+      const client1EmpireBalanceAfter = await token.balanceOf(client1.address);
+      const client2EmpireBalanceAfter = await token.balanceOf(client2.address);
+      const contractEmpireBalanceAfter = await token.balanceOf(token.address);
 
-      //   // client1 balance change
-      //   expect(client1EmpireBalanceAfter.toNumber()).greaterThan(
-      //     client1EmpireBalance.toNumber()
-      //   );
+      const amountBuyOut = client1EmpireBalanceAfter.sub(initialClient1Balance);
+      console.log(amountBuyOut);
+      console.log(contractEmpireBalanceAfter);
+      console.log(client2EmpireBalanceAfter);
+
+      // client1 balance change increase because he buy empire
+      expect(client1EmpireBalanceAfter.toNumber()).greaterThan(
+        initialClient1Balance.toNumber()
+      );
+
+      // contract balance it should increase because take 8% fee
+      // why 8%, because 2% is for reflection
+      // and 8% is for liquidity, team and marketing
+      // and it will be keep at contract balance
+      // before contract trigger swapAndLiquify function
+
+      expect(contractEmpireBalanceAfter.toNumber()).greaterThan(
+        initialContractBalance.toNumber()
+      );
+
+      // client2 balance change increase because his wallet is in reward
+      expect(client2EmpireBalanceAfter.toNumber()).greaterThan(
+        initialClient2Balance.toNumber()
+      );
     });
 
     // it("Should be able to sell Empire", async function () {
