@@ -752,17 +752,17 @@ contract EmpireToken is Context, IERC20, Ownable {
 
         _isExcludedFromFee[address(uniswapV2Router)] = true;
 
-        buyFee.autoLp = 1;
-        buyFee.burn = 1;
-        buyFee.marketing = 2;
-        buyFee.tax = 1;
+        buyFee.autoLp = 4;
+        buyFee.burn = 0;
+        buyFee.marketing = 3;
+        buyFee.tax = 2;
         buyFee.team = 1;
 
-        sellFee.autoLp = 1;
-        sellFee.burn = 2;
-        sellFee.marketing = 4;
-        sellFee.tax = 3;
-        sellFee.team = 3;
+        sellFee.autoLp = 4;
+        sellFee.burn = 0;
+        sellFee.marketing = 3;
+        sellFee.tax = 2;
+        sellFee.team = 1;
 
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
