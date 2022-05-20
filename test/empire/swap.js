@@ -12,9 +12,6 @@ const deadAddress = "0x000000000000000000000000000000000000dEaD";
 
 const airdropValue = ethers.utils.parseUnits("2000", 9);
 
-const deployerPkey =
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-
 describe("Empire Token", function () {
   let deployer;
   let marketingWallet;
