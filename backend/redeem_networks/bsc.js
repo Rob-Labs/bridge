@@ -2,13 +2,12 @@ require("dotenv").config();
 const Web3 = require("web3");
 const bridgeABI = require("../abis/Bridge.json");
 const VALIDATOR_KEY = process.env.VALIDATOR_KEY;
-const explorer = process.env.ETH_EXPLORER;
-const network_name = "ETH";
-const BRIDGE_ADDRESS = process.env.ETH_BRIDGE_ADDRESS;
+const BRIDGE_ADDRESS = process.env.BSC_BRIDGE_ADDRESS;
+const explorer = process.env.BSC_EXPLORER;
+const network_name = "BSC MAINNET";
+const BSC_REDEEM_RPC = process.env.BSC_REDEEM_RPC;
 
-const ETH_LISTENER_RPC = process.env.ETH_LISTENER_RPC;
-
-const web3 = new Web3(ETH_LISTENER_RPC);
+const web3 = new Web3(BSC_REDEEM_RPC);
 web3.eth.accounts.wallet.add(VALIDATOR_KEY);
 const bridge = new web3.eth.Contract(bridgeABI, BRIDGE_ADDRESS);
 

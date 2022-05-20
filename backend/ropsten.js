@@ -12,7 +12,7 @@ const log_file = fs.createWriteStream(__dirname + "/backend.log", {
 const log_stdout = process.stdout;
 
 const Queue = require("bull");
-const RedeemTxQueue = new Queue("RedeemTxBackend", "redis:/127.0.0.1:6379");
+const RedeemTxQueue = new Queue("RedeemTxBackend", process.env.REDIS_URL);
 
 console.log = function (d) {
   log_file.write(util.format(d) + "\n");

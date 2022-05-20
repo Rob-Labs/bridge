@@ -6,10 +6,9 @@ const explorer = process.env.ROPSTEN_EXPLORER;
 const network_name = "ROPSTEN TESTNET";
 const BRIDGE_ADDRESS = process.env.ROPSTEN_BRIDGE_ADDRESS;
 
-const ROPSTEN_LISTENER_RPC = process.env.ROPSTEN_LISTENER_RPC;
+const ROPSTEN_REDEEM_RPC = process.env.ROPSTEN_REDEEM_RPC;
 
-const web3 = new Web3(ROPSTEN_LISTENER_RPC);
-web3.eth.handleRevert = true;
+const web3 = new Web3(ROPSTEN_REDEEM_RPC);
 web3.eth.transactionBlockTimeout = 30000;
 web3.eth.accounts.wallet.add(VALIDATOR_KEY);
 const bridge = new web3.eth.Contract(bridgeABI, BRIDGE_ADDRESS);

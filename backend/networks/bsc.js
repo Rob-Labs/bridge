@@ -5,9 +5,9 @@ const VALIDATOR_KEY = process.env.VALIDATOR_KEY;
 const BRIDGE_ADDRESS = process.env.BSC_BRIDGE_ADDRESS;
 const explorer = process.env.BSC_EXPLORER;
 const network_name = "BSC MAINNET";
-const BSC_WS = process.env.BSC_WS;
+const BSC_LISTENER_RPC = process.env.BSC_LISTENER_RPC;
 
-const web3 = new Web3(BSC_WS);
+const web3 = new Web3(BSC_LISTENER_RPC);
 web3.eth.accounts.wallet.add(VALIDATOR_KEY);
 const bridge = new web3.eth.Contract(bridgeABI, BRIDGE_ADDRESS);
 
