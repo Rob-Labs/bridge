@@ -1,151 +1,103 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "./IEmpireToken.sol";
-import "./IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract Bridge {
+interface IBridgeToken {
+    function mint(address account, uint256 tAmount) external;
+
+    function burn(address account, uint256 tAmount) external;
+
+    function decimals() external pure returns (uint8);
+}
+
+interface IERC20 {
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address to, uint256 amount) external returns (bool);
+}
+
+contract Bridge is Ownable, Pausable, ReentrancyGuard {
+    // state variables
+
     address public validator;
-    uint256 public fee = 50;
+    uint256 public fee = 1 * 10**(18 - 4); // 0.0001 Ether (just for test)
+    address payable public TREASURY;
 
-    uint8 public nativeDecimal = 18;
+    uint256 public minAmount = 1;
+    uint256 public maxAmount = 10000;
 
-    uint256 public constant FEE_DENOMINATOR = 10000;
     uint256 private currentNonce = 0;
-    address payable public feeRecevier;
-    mapping(bytes32 => bool) public processedSwap;
-    mapping(bytes32 => bool) public processedRedeem;
-    mapping(string => address) public tickerToToken;
-    mapping(uint256 => bool) public activeChainIds;
 
-    event LogSwapInitialized(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
-    event LogRedeemed(address indexed from, address indexed to, uint256 amount, string ticker, uint256 chainTo, uint256 chainFrom, uint256 nonce);
-    event LogWithdrawalNative(address indexed account, uint256 amount);
-    event LogWithdrawalERC20(address indexed tokenAddress, address indexed account, uint256 amount);
-    event LogFeeUpdated(uint256 oldFee, uint256 newFee);
-    event LogValidatorUpdated(address oldValidator, address newValidator);
-    event LogFeeRecevierUpdated(address oldFeeRecevier, address newFeeRecevier);
-    event LogSupportedChain(uint256 chainId, bool status);
-    event LogAddSupportedToken(string ticker, address tokenAddress);
-    event LogRemooveSupportedToken(string ticker, address tokenAddress);
+    mapping(uint256 => bool) public isActiveChain;
+    mapping(address => mapping(uint256 => address)) public bridgeTokenPair;
+    mapping(bytes32 => bool) public processedRedeem;
+
+    // events list
+
+    event LogSetFee(uint256 fee);
+    event LogSetValidator(address validator);
+    event LogSetTreasury(address indexed treasury);
+    event LogSetMinAmount(uint256 minAmount);
+    event LogSetMaxAmount(uint256 maxAmount);
+    event LogUpdateActiveChainList(uint256 chainId, bool state);
+    event LogUpdateBridgeTokenPairList(address fromToken, uint256 toChainId, address toToken);
     event LogFallback(address from, uint256 amount);
     event LogReceive(address from, uint256 amount);
-    event LogUpdateDecimal(uint8 oldDecimal, uint8 newDecimal);
+    event LogWithdrawalETH(address indexed recipient, uint256 amount);
+    event LogWithdrawalERC20(address indexed token, address indexed recipient, uint256 amount);
+    event LogSwap(uint256 indexed nonce, address indexed from, uint256 fromChainId, address fromToken, address to, uint256 toChainId, address toToken, uint256 amount);
 
-    bool internal locked;
+    event LogRedeem(bytes32 txs, address token, uint256 amount, address to, uint256 fromChainId);
 
-    modifier nonZeroAddress(address _addr) {
-        require(_addr != address(0), "Can't set to the zero address");
-        _;
-    }
-
-    modifier noReentrant() {
-        require(!locked, "No Reentrant");
-        locked = true;
-        _;
-        locked = false;
-    }
-
-    constructor(address payable _feeRecevier) nonZeroAddress(_feeRecevier) {
-        validator = msg.sender;
-
-        feeRecevier = _feeRecevier;
+    constructor(address _validator, address payable _treasury) {
+        validator = _validator;
+        TREASURY = _treasury;
     }
 
     function swap(
-        address to,
+        address token,
         uint256 amount,
-        string memory ticker,
-        uint256 chainTo,
-        uint256 chainFrom
-    ) external payable {
-        uint256 _fee = calculateFee();
-        require(msg.value >= _fee, "Swap fee is not fulfilled");
-        require(getChainID() == chainFrom, "invalid chainFrom");
-        require(activeChainIds[chainTo], "ChainTo is not Active");
+        address to,
+        uint256 toChainId,
+        uint256 deadline
+    ) external payable whenNotPaused nonReentrant nonContract {
+        require(deadline >= block.timestamp, "Bridge: EXPIRED");
+        require(toChainId != cID(), "Invalid Bridge");
+        require(isActiveChain[toChainId], "toChainId is not Active");
+        require(bridgeTokenPair[token][toChainId] != address(0), "Invalid Bridge Token");
+        require(amount >= minAmount * (10**IBridgeToken(token).decimals()) && amount <= maxAmount * (10**IBridgeToken(token).decimals()), "Wrong amount");
+        require(msg.value >= fee, "Fee is not fulfilled");
 
         uint256 nonce = currentNonce;
         currentNonce++;
 
-        require(!processedSwap[keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce))], "swap already processed");
-        bytes32 hash_ = keccak256(abi.encodePacked(msg.sender, to, amount, chainFrom, chainTo, ticker, nonce));
+        // send fee to TREASURY address
+        TREASURY.transfer(msg.value);
+        IBridgeToken(token).burn(msg.sender, amount);
 
-        processedSwap[hash_] = true;
-
-        // send fee to feeRecevier address
-        feeRecevier.transfer(msg.value);
-
-        emit LogSwapInitialized(msg.sender, to, amount, ticker, chainTo, chainFrom, nonce);
-
-        address token = tickerToToken[ticker];
-        IEmpireToken(token).burn(msg.sender, amount);
+        emit LogSwap(nonce, msg.sender, cID(), token, to, toChainId, bridgeTokenPair[token][toChainId], amount);
     }
 
     function redeem(
-        address from,
-        address to,
+        bytes32 txs,
+        address token,
         uint256 amount,
-        string memory ticker,
-        uint256 chainFrom,
-        uint256 chainTo,
-        uint256 nonce,
-        bytes calldata signature
-    ) external {
-        bytes32 hash_ = keccak256(abi.encodePacked(from, to, amount, ticker, chainFrom, chainTo, nonce));
-        require(!processedRedeem[hash_], "Redeem already processed");
+        address to,
+        uint256 fromChainId
+    ) external onlyValidator whenNotPaused nonReentrant {
+        require(amount >= minAmount * (10**IBridgeToken(token).decimals()) && amount <= maxAmount * (10**IBridgeToken(token).decimals()), "Wrong amount");
+        require(fromChainId != cID(), "Invalid Bridge");
+
+        bytes32 hash_ = keccak256(abi.encodePacked(txs, fromChainId));
+        require(processedRedeem[hash_] != true, "Redeem already processed");
         processedRedeem[hash_] = true;
 
-        require(getChainID() == chainTo, "invalid chainTo");
-        require(recoverSigner(hashMessage(hash_), signature) == validator, "invalid sig");
+        IBridgeToken(token).mint(to, amount);
 
-        emit LogRedeemed(from, to, amount, ticker, chainTo, chainFrom, nonce);
-
-        address token = tickerToToken[ticker];
-        IEmpireToken(token).mint(to, amount);
-    }
-
-    /**
-     * @dev Recover signer address from a message by using their signature
-     * @param message bytes32 message, the hash is the signed message. What is recovered is the signer address.
-     * @param sig bytes signature, the signature is generated using web3.eth.sign()
-     */
-    function recoverSigner(bytes32 message, bytes memory sig) internal pure returns (address) {
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-
-        (v, r, s) = splitSignature(sig);
-
-        return ecrecover(message, v, r, s);
-    }
-
-    function splitSignature(bytes memory sig)
-        internal
-        pure
-        returns (
-            uint8,
-            bytes32,
-            bytes32
-        )
-    {
-        require(sig.length == 65, "Not Valid Sig Lenght");
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly {
-            r := mload(add(sig, 32))
-            s := mload(add(sig, 64))
-            v := byte(0, mload(add(sig, 96)))
-        }
-
-        return (v, r, s);
-    }
-
-    function hashMessage(bytes32 message) private pure returns (bytes32) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        return keccak256(abi.encodePacked(prefix, message));
+        emit LogRedeem(txs, token, amount, to, fromChainId);
     }
 
     function isValidator() internal view returns (bool) {
@@ -157,7 +109,17 @@ contract Bridge {
         _;
     }
 
-    function getChainID() public view returns (uint256) {
+    function isContract(address account) internal view returns (bool) {
+        return account.code.length > 0;
+    }
+
+    modifier nonContract() {
+        require(!isContract(msg.sender), "contract not allowed");
+        require(msg.sender == tx.origin, "proxy contract not allowed");
+        _;
+    }
+
+    function cID() public view returns (uint256) {
         uint256 id;
         assembly {
             id := chainid()
@@ -165,64 +127,83 @@ contract Bridge {
         return id;
     }
 
-    function updateChainById(uint256 chainId, bool isActive) external onlyValidator {
-        emit LogSupportedChain(chainId, isActive);
-        activeChainIds[chainId] = isActive;
+    // Set functions
+
+    function setMinAmount(uint256 _minAmount) external onlyOwner {
+        require(_minAmount <= maxAmount, "MinAmount <= MaxAmount");
+        minAmount = _minAmount;
+
+        emit LogSetMinAmount(minAmount);
     }
 
-    function includeToken(string memory ticker, address addr) external onlyValidator {
-        emit LogAddSupportedToken(ticker, addr);
-        tickerToToken[ticker] = addr;
+    function setMaxAmount(uint256 _maxAmount) external onlyOwner {
+        require(_maxAmount >= minAmount, "MaxAmount >= MinAmount");
+        maxAmount = _maxAmount;
+
+        emit LogSetMaxAmount(maxAmount);
     }
 
-    function excludeToken(string memory ticker) external onlyValidator {
-        address tokenAddress = tickerToToken[ticker];
-        emit LogRemooveSupportedToken(ticker, tokenAddress);
-        delete tickerToToken[ticker];
+    function updateActiveChainList(uint256 chainId, bool isActive) external onlyOwner {
+        isActiveChain[chainId] = isActive;
+        emit LogUpdateActiveChainList(chainId, isActive);
     }
 
-    function updateValidator(address newValidator) external onlyValidator nonZeroAddress(newValidator) {
-        emit LogValidatorUpdated(validator, newValidator);
-        validator = newValidator;
+    function updateBridgeTokenPairList(
+        address fromToken,
+        uint256 toChainId,
+        address toToken
+    ) external onlyOwner {
+        bridgeTokenPair[fromToken][toChainId] = toToken;
+        emit LogUpdateBridgeTokenPairList(fromToken, toChainId, toToken);
     }
 
-    function updateDecimal(uint8 newDecimal) external onlyValidator {
-        emit LogUpdateDecimal(nativeDecimal, newDecimal);
-        nativeDecimal = newDecimal;
+    function setPause() external onlyOwner {
+        _pause();
     }
 
-    function updateFeeRecevier(address payable newFeeRecevier) external onlyValidator nonZeroAddress(newFeeRecevier) {
-        emit LogFeeRecevierUpdated(feeRecevier, newFeeRecevier);
-        feeRecevier = newFeeRecevier;
+    function setUnpause() external onlyOwner {
+        _unpause();
     }
 
-    function updateFee(uint256 newFee) external onlyValidator {
-        emit LogFeeUpdated(fee, newFee);
-        fee = newFee;
+    function setValidator(address _validator) external onlyOwner {
+        validator = _validator;
+        emit LogSetValidator(validator);
     }
 
-    function calculateFee() public view returns (uint256) {
-        return (fee * (10**nativeDecimal)) / FEE_DENOMINATOR;
+    function setTreasury(address payable _treasury) external onlyOwner {
+        TREASURY = _treasury;
+        emit LogSetTreasury(TREASURY);
     }
 
-    function withdrawNative(address payable account) external onlyValidator noReentrant nonZeroAddress(account) {
+    function setFee(uint256 _fee) external onlyOwner {
+        fee = _fee;
+        emit LogSetFee(fee);
+    }
+
+    // Withdraw functions
+    function withdrawETH(address payable recipient) external onlyOwner {
+        require(address(this).balance > 0, "Incufficient funds");
+
         uint256 amount = (address(this)).balance;
-        emit LogWithdrawalNative(account, amount);
+        recipient.transfer(amount);
 
-        account.transfer(amount);
+        emit LogWithdrawalETH(recipient, amount);
     }
 
     /**
-     * Validator or Owner can recover any ERC20 token sent into the contract for error
+     * @notice Should not be withdrawn scam token.
      */
-    function withdrawERC20(address erc20, address payable account) external onlyValidator noReentrant nonZeroAddress(account) {
-        uint256 amount = IERC20(erc20).balanceOf(address(this));
-        bool success = IERC20(erc20).transfer(account, amount);
-        require(success, "Can't Withdraw ERC20");
+    function withdrawERC20(IERC20 token, address recipient) external onlyOwner {
+        uint256 amount = token.balanceOf(address(this));
 
-        emit LogWithdrawalERC20(erc20, account, amount);
+        require(amount > 0, "Incufficient funds");
+
+        require(token.transfer(recipient, amount), "WithdrawERC20 Fail");
+
+        emit LogWithdrawalERC20(address(token), recipient, amount);
     }
 
+    // Receive and Fallback functions
     receive() external payable {
         emit LogReceive(msg.sender, msg.value);
     }

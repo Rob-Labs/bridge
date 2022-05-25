@@ -3,7 +3,7 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { ethers } from "hardhat";
+const hre = require("hardhat");
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -13,13 +13,13 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  const _feeRecevier = "0x3631f25ea6f2368D3A927685acD2C5c43CE05049";
   // We get the contract to deploy
+  const _validator = "0x3631f25ea6f2368D3A927685acD2C5c43CE05049";
+  const _treasury = "0x3631f25ea6f2368D3A927685acD2C5c43CE05049";
+
   const Bridge = await ethers.getContractFactory("Bridge");
-  const bridge = await Bridge.deploy(_feeRecevier);
-
+  const bridge = await Bridge.deploy(_validator, _treasury);
   await bridge.deployed();
-
   console.log("Bridge deployed to:", bridge.address);
 }
 
